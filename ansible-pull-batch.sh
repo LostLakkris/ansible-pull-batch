@@ -42,7 +42,7 @@ for entry in $(awk '!/^#/{print}' "${@}"); do
 	if [ ! -d "${LOCALDIR}" ]; then
 		mkdir -p $(dirname "${LOCALDIR}")
 	fi
-	if [ "${TYPE}" == "ssh" && -n "${PEMFILE}" ]; then
+	if [ "${TYPE}" == "ssh" ] && [ -n "${PEMFILE}" ]; then
 		export GIT_SSH_COMMAND="ssh -i ${PEMFILE} -F /dev/null -o 'StrictHostKeyChecking=no' -o 'UserKnownHostsFile=/dev/null'"
 	else
 		export GIT_SSH_COMMAND=${OGIT_SSH_COMMAND}
