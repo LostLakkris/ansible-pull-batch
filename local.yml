@@ -5,4 +5,4 @@
     get_url:
       url: https://github.com/LostLakkris/ansible-pull-batch/raw/master/ansible-pull-batch.sh
       dest: /usr/bin
-      mode: 0755
+      mode: "0755"
