@@ -24,6 +24,7 @@ fi
 OIFS=$IFS
 IFS=$'\n'
 OGIT_SSH_COMMAND=${GIT_SSH_COMMAND}
+export ANSIBLE_NOCOWS=1 # Disable cowsay
 for entry in $(awk '!/^#/{print}' "${@}"); do
 	# Parse entry
 	URL=$(echo "${entry}" | awk -F',' '{print $1}')
