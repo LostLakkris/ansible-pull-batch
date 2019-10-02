@@ -5,7 +5,8 @@ usage()
 	echo "  $0 list.csv"
 	echo
 	echo "CSV FORMAT:"
-	echo "  #url,<absolute localdir>,<absolute pemfile>"
+	echo "  ## Prefix comments w/ #, anything in '[]' is optional, but still positional"
+	echo "  #url,[branch],[local.yml],[absolute localdir],[absolute pemfile]"
 	echo
 	echo "NOTES:"
 	echo "  pemfile options only work if URL begins with ssh://"
@@ -29,15 +30,20 @@ for entry in $(awk '!/^#/{print}' "${@}"); do
 	# Parse entry
 	URL=$(echo "${entry}" | awk -F',' '{print $1}')
 	TYPE=$(echo "${URL}" | awk -F ':' '{print $1}')
-	#TODO: parse out branch/commit identifiers from first url target
-	BRANCH=master
 
-	LOCALDIR=$(echo "${entry}" | awk -F',' '{print $2}')
+	BRANCH=$(echo "${entry}" | awk -F',' '{print $2}')
+	if [ -z "${BRANCH}" ]; then
+		BRANCH="master"
+	fi
+
+	YML_FILE=$(echo "${entry}" | awk -F',' '{print $3}')
+
+	LOCALDIR=$(echo "${entry}" | awk -F',' '{print $4}')
 	if [ -z "${LOCALDIR}" ]; then
 		LOCALDIR="/playbooks/$(echo "${URL}" | awk -F'/' '{print $NF}')"
 	fi
 
-	PEMFILE=$(echo "${entry}" | awk -F',' '{print $3}')
+	PEMFILE=$(echo "${entry}" | awk -F',' '{print $5}')
 
 	# Do stuff
 	if [ ! -d "${LOCALDIR}" ]; then
@@ -48,6 +54,12 @@ for entry in $(awk '!/^#/{print}' "${@}"); do
 	else
 		export GIT_SSH_COMMAND=${OGIT_SSH_COMMAND}
 	fi
-	ansible-pull --accept-host-key --clean --only-if-changed --checkout=${BRANCH} --directory=${LOCALDIR} --url=${URL} 2>&1
+	if [[ -n "${YML_FILE}" ]]; then
+		## Use explicitly defined yaml file
+		ansible-pull --accept-host-key --clean --only-if-changed --checkout=${BRANCH} --directory=${LOCALDIR} --url=${URL} "${YML_FILE}" 2>&1
+	else
+		## Allow ansible-pull to follow default behavior
+		ansible-pull --accept-host-key --clean --only-if-changed --checkout=${BRANCH} --directory=${LOCALDIR} --url=${URL} 2>&1
+	fi
 done
 IFS=$OIFS
